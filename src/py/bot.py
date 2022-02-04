@@ -1,31 +1,64 @@
-from twilio.rest import Client 
+'''
+simple wpp bot to reply msgs
+'''
 
-from dotenv import load_dotenv
 import os
+#import logging
+import time
 
-import logging
+from twilio.rest import Client
+from dotenv import load_dotenv
 
 load_dotenv()
 
 account_sid = os.getenv("TWILIO_SID")
-auth_token = os.getenv("TWILIO_TOKEN") 
+auth_token = os.getenv("TWILIO_TOKEN")
 twilio_num = os.getenv("TWILIO_NUM")
 my_num = os.getenv("MY_NUM")
 
-client = Client(account_sid, auth_token) 
+client = Client(account_sid, auth_token)
 
-logging.basicConfig()
-client.http_client.logger.setLevel(logging.INFO)
+#logging.basicConfig()
+#client.http_client.logger.setLevel(logging.INFO)
 
-# getting the 'last' 1 msg
-msgs = client.messages.list(limit=1)
+def get_msg_struct():
+    '''
+    get the 'last' msg  in the last 1sec
+    and return a msg struct
+    '''
 
-for msg in msgs:
-    print(f"{msg.from_}: {msg.body}\n")
+    # getting the 'last' 1 msg
+    msgs = client.messages.list(limit=1)
 
-    if msg.body == '/ahoy':
-        message = client.messages.create(
-            from_ = 'whatsapp:' + twilio_num,
-            body = 'AHOY!!',
-            to = msg.from_
-        )
+    time.sleep(1)
+
+    return msgs
+
+def send_msg(msg, sender):
+    '''
+    just send a simple msg
+    '''
+
+    client.messages.create(
+        from_ = 'whatsapp:' + twilio_num,
+        body = msg,
+        to = sender
+    )
+
+def ahoy_reply(msg, sender):
+    '''
+    send 'AHOY' when receive '/ahoy'
+    '''
+
+    if msg == '/ahoy':
+        send_msg('AHOY!!', sender)
+
+def main():
+    while True:
+        msgs = get_msg_struct()
+
+        for msg in msgs:
+            ahoy_reply(msg.body, msg.from_)
+
+if __name__ == '__main__':
+    main()
