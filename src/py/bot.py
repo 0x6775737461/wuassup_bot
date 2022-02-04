@@ -17,10 +17,15 @@ client = Client(account_sid, auth_token)
 logging.basicConfig()
 client.http_client.logger.setLevel(logging.INFO)
 
-message = client.messages.create( 
-    from_='whatsapp:' + twilio_num,  
-    body='TESTANDO O TWILLIO CARAIO!!',      
-    to='whatsapp:' + my_num 
-)
+# getting the 'last' 1 msg
+msgs = client.messages.list(limit=1)
 
-print(message.sid)
+for msg in msgs:
+    print(f"{msg.from_}: {msg.body}\n")
+
+    if msg.body == '/ahoy':
+        message = client.messages.create(
+            from_ = 'whatsapp:' + twilio_num,
+            body = 'AHOY!!',
+            to = msg.from_
+        )
